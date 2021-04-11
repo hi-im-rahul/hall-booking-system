@@ -31,10 +31,7 @@ public class HallBookingService {
   public HallInfoResponseDto checkHallAvailability(
       final HallBookingRequestDto hallBookingRequestDto) {
     final HallEntity hallEntity = validateBookingAndGetHall(hallBookingRequestDto);
-    return HallInfoResponseDto.builder()
-        .hallId(hallEntity.getUuid())
-        .hallName(hallEntity.getHallName())
-        .build();
+    return buildHallInfoResponse(hallEntity);
   }
 
   private HallEntity validateBookingAndGetHall(final HallBookingRequestDto hallBookingRequestDto) {
@@ -109,11 +106,14 @@ public class HallBookingService {
         .bookingDate(booking.getBookingDate())
         .startTime(booking.getStartTime())
         .endTime(booking.getEndTime())
-        .hallInfo(
-            HallInfoResponseDto.builder()
-                .hallId(booking.getHallEntity().getUuid())
-                .hallName(booking.getHallEntity().getHallName())
-                .build())
+        .hallInfo(buildHallInfoResponse(booking.getHallEntity()))
+        .build();
+  }
+
+  private HallInfoResponseDto buildHallInfoResponse(final HallEntity hallEntity) {
+    return HallInfoResponseDto.builder()
+        .hallId(hallEntity.getUuid())
+        .hallName(hallEntity.getHallName())
         .build();
   }
 
