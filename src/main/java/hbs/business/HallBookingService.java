@@ -68,10 +68,11 @@ public class HallBookingService {
       final UUID hallId, final HallBookingRequestDto hallBookingRequestDto) {
     final HallEntity hallEntity =
         hallRepository.findById(hallId).orElseThrow(() -> new RuntimeException("Invalid hall id"));
+    validateInputTime(hallBookingRequestDto);
     if (isSlotBlocked(hallEntity.getUuid(), hallBookingRequestDto)) {
-      throw new RuntimeException("The hall was booked since last check");
+      throw new RuntimeException(
+          "The hall was booked since last checked, please check availability again");
     }
-
     final HallBookingEntity hallBookingEntity = new HallBookingEntity();
     hallBookingEntity.setHallEntity(hallEntity);
     hallBookingEntity.setBookingDate(hallBookingRequestDto.getBookingDate());
@@ -84,10 +85,11 @@ public class HallBookingService {
   private boolean isSlotBlocked(final UUID hallId, final HallBookingRequestDto dto) {
     return hallBookingRepository
         .findAllByHallEntity_UuidAndBookingDate(hallId, dto.getBookingDate()).stream()
-        .anyMatch(booking -> isConflicting(booking, dto));
+        .anyMatch(booking -> isConflictingWithAnotherBooking(booking, dto));
   }
 
-  private boolean isConflicting(HallBookingEntity booking, final HallBookingRequestDto dto) {
+  private boolean isConflictingWithAnotherBooking(
+      HallBookingEntity booking, final HallBookingRequestDto dto) {
     return dto.getEndTime().isAfter(booking.getStartTime())
         && booking.getEndTime().isAfter(dto.getStartTime());
   }
